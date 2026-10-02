@@ -212,6 +212,57 @@
             font-size: 0.8rem;
         }
 
+        /* Cards */
+        .card {
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 80px;
+            height: 110px;
+            background: white;
+            border-radius: 8px;
+            margin: 5px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .card.red { color: #d32f2f; }
+        .card.black { color: #000; }
+
+        .cards-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px 0;
+        }
+
+        .hands-container {
+            margin: 20px 0;
+        }
+
+        .hand {
+            margin: 15px 0;
+        }
+
+        .hand h4 {
+            margin-bottom: 10px;
+            color: var(--text-muted);
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .actions button {
+            flex: 1;
+        }
+
         /* Modal */
         .modal {
             position: fixed;
@@ -264,6 +315,7 @@
             .hero h1 { font-size: 2rem; }
             .game-panel { padding: 15px; }
             .btn-large { padding: 15px; }
+            .card { width: 60px; height: 85px; font-size: 0.9rem; }
         }
     </style>
 </head>
@@ -287,38 +339,40 @@
         <!-- Main Content -->
         <main>
             <section class="hero">
-                <h1>Play Fair. Stay Private.</h1>
+                <h1 id="game-title">Play Fair. Stay Private.</h1>
                 <p>Decentralized. No KYC. Just Monero.</p>
             </section>
 
             <section class="games-grid">
-                <div class="game-card active">
+                <div class="game-card">
                     <div class="game-icon"><i class="fa-solid fa-dice"></i></div>
                     <h3>Dice</h3>
-                    <p>Roll under 50 to win 2x.</p>
-                    <button class="play-btn">Play Now</button>
+                    <p>Roll under target to win.</p>
+                    <button class="play-btn" data-game="dice">Play Now</button>
                 </div>
                 <div class="game-card">
-                    <div class="game-icon"><i class="fa-solid fa-coins"></i></div>
-                    <h3>Mines</h3>
-                    <p>Uncover gems, avoid mines.</p>
-                    <button class="play-btn">Play Now</button>
+                    <div class="game-icon"><i class="fa-solid fa-spade"></i></div>
+                    <h3>Poker</h3>
+                    <p>Texas Hold'em & 5-Card Draw</p>
+                    <button class="play-btn" data-game="poker">Play Now</button>
                 </div>
                 <div class="game-card">
-                    <div class="game-icon"><i class="fa-solid fa-car-burst"></i></div>
-                    <h3>Crash</h3>
-                    <p>Cash out before the rocket crashes.</p>
-                    <button class="play-btn">Play Now</button>
+                    <div class="game-icon"><i class="fa-solid fa-heart"></i></div>
+                    <h3>Blackjack</h3>
+                    <p>Get 21 or beat the dealer.</p>
+                    <button class="play-btn" data-game="blackjack">Play Now</button>
                 </div>
             </section>
 
             <!-- Game Interface (Hidden by default) -->
             <section id="game-interface" class="game-panel hidden">
                 <div class="game-header">
-                    <h2>Dice</h2>
+                    <h2 id="game-title">Game</h2>
                     <button id="back-to-menu" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</button>
                 </div>
-                <div class="game-controls">
+
+                <!-- Dice Controls -->
+                <section id="dice-controls" class="game-controls hidden">
                     <div class="input-group">
                         <label>Bet Amount (XMR)</label>
                         <input type="number" id="bet-amount" value="0.01" step="0.001" min="0.001">
@@ -331,10 +385,53 @@
                         <span id="dice-result">--</span>
                     </div>
                     <button id="roll-btn" class="btn-large">ROLL</button>
-                </div>
-                <div class="provably-fair">
-                    <small>Seed: <span id="server-seed">...</span> | Nonce: <span id="nonce">1</span></small>
-                </div>
+                    <div class="provably-fair">
+                        <small>Seed: <span id="server-seed">...</span> | Nonce: <span id="nonce">1</span></small>
+                    </div>
+                </section>
+
+                <!-- Poker Controls -->
+                <section id="poker-controls" class="game-controls hidden">
+                    <div class="input-group">
+                        <label>Bet Amount (XMR)</label>
+                        <input type="number" id="bet-amount" value="0.01" step="0.001" min="0.001">
+                    </div>
+                    <div class="hands-container">
+                        <div class="hand">
+                            <h4>Dealer</h4>
+                            <div id="dealer-cards" class="cards-row"></div>
+                        </div>
+                        <div class="hand">
+                            <h4>You</h4>
+                            <div id="player-cards" class="cards-row"></div>
+                        </div>
+                    </div>
+                    <button id="deal-poker-btn" class="btn-large">Deal</button>
+                    <button id="draw-poker-btn" class="btn-large hidden">Draw New Hand</button>
+                </section>
+
+                <!-- Blackjack Controls -->
+                <section id="blackjack-controls" class="game-controls hidden">
+                    <div class="input-group">
+                        <label>Bet Amount (XMR)</label>
+                        <input type="number" id="bet-amount" value="0.01" step="0.001" min="0.001">
+                    </div>
+                    <div class="hands-container">
+                        <div class="hand">
+                            <h4>Dealer <span id="bj-dealer-score">(0)</span></h4>
+                            <div id="bj-dealer-cards" class="cards-row"></div>
+                        </div>
+                        <div class="hand">
+                            <h4>You <span id="bj-player-score">(0)</span></h4>
+                            <div id="bj-player-cards" class="cards-row"></div>
+                        </div>
+                    </div>
+                    <button id="deal-bj-btn" class="btn-large">Deal</button>
+                    <div id="bj-actions" class="actions hidden">
+                        <button id="hit-btn" class="btn-primary">Hit</button>
+                        <button id="stand-btn" class="btn-secondary">Stand</button>
+                    </div>
+                </section>
             </section>
 
             <!-- Deposit Modal -->
@@ -343,7 +440,6 @@
                     <h3>Deposit XMR</h3>
                     <p>Send Monero to this address:</p>
                     <div class="qr-code">
-                        <!-- QR Code placeholder -->
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=YOUR_XMR_ADDRESS_HERE" alt="QR Code">
                     </div>
                     <code id="deposit-address">4...example...address</code>
@@ -367,7 +463,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // DOM Elements
+            // --- DOM Elements ---
             const connectBtn = document.getElementById('connect-btn');
             const walletInfo = document.getElementById('wallet-info');
             const userAddressEl = document.getElementById('user-address');
@@ -380,8 +476,11 @@
             
             const gameInterface = document.getElementById('game-interface');
             const backToMenu = document.getElementById('back-to-menu');
+            const gameTitle = document.getElementById('game-title');
+            
             const playBtns = document.querySelectorAll('.play-btn');
             
+            // Dice Elements
             const betAmountInput = document.getElementById('bet-amount');
             const rollSlider = document.getElementById('roll-slider');
             const rollTargetDisplay = document.getElementById('roll-target');
@@ -389,33 +488,52 @@
             const rollBtn = document.getElementById('roll-btn');
             const nonceDisplay = document.getElementById('nonce');
             
+            // Poker Elements
+            const dealerCardsEl = document.getElementById('dealer-cards');
+            const playerCardsEl = document.getElementById('player-cards');
+            const dealPokerBtn = document.getElementById('deal-poker-btn');
+            const drawPokerBtn = document.getElementById('draw-poker-btn');
+            
+            // Blackjack Elements
+            const bjDealerCardsEl = document.getElementById('bj-dealer-cards');
+            const bjPlayerCardsEl = document.getElementById('bj-player-cards');
+            const bjDealerScoreEl = document.getElementById('bj-dealer-score');
+            const bjPlayerScoreEl = document.getElementById('bj-player-score');
+            const dealBjBtn = document.getElementById('deal-bj-btn');
+            const hitBtn = document.getElementById('hit-btn');
+            const standBtn = document.getElementById('stand-btn');
+            const bjActionsDiv = document.getElementById('bj-actions');
+
             let currentAddress = '';
             let isConnected = false;
+            let currentGame = 'dice';
 
-            // Connect Wallet (Simulated)
+            // --- Wallet Logic ---
             connectBtn.addEventListener('click', async () => {
                 connectBtn.textContent = 'Connecting...';
                 connectBtn.disabled = true;
                 
-                // Simulate network delay
-                setTimeout(() => {
-                    // Generate a fake Monero address starting with 4
+                try {
+                    // Simulated wallet connection
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     const randomHex = Math.random().toString(16).substr(2, 8);
                     currentAddress = `4${randomHex}...` + Math.random().toString(36).substring(2, 6);
                     
-                    userAddressEl.textContent = currentAddress;
+                    userAddressEl.textContent = currentAddress.substring(0, 6) + '...' + currentAddress.slice(-4);
                     depositAddressEl.textContent = currentAddress;
                     
-                    // Set fake balance
                     userBalanceEl.textContent = `${(Math.random() * 10).toFixed(4)} XMR`;
                     
                     walletInfo.classList.remove('hidden');
                     connectBtn.classList.add('hidden');
                     isConnected = true;
-                }, 1000);
+                } catch (error) {
+                    alert('Failed to connect wallet.');
+                } finally {
+                    connectBtn.style.display = 'none';
+                }
             });
 
-            // Disconnect
             disconnectBtn.addEventListener('click', () => {
                 currentAddress = '';
                 walletInfo.classList.add('hidden');
@@ -423,16 +541,24 @@
                 connectBtn.disabled = false;
                 connectBtn.style.display = 'inline-block';
                 isConnected = false;
+                resetAllGames();
             });
 
-            // Open Deposit Modal
+            // --- Navigation & Setup ---
             playBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
                     if (!isConnected) {
                         alert('Please connect your wallet first!');
                         return;
                     }
-                    depositModal.classList.remove('hidden');
+                    depositModal.classList.add('hidden');
+                    gameInterface.classList.remove('hidden');
+                    document.querySelector('.games-grid').classList.add('hidden');
+                    document.querySelector('.hero').classList.add('hidden');
+                    
+                    hideAllGameControls();
+                    const gameType = btn.dataset.game;
+                    switchGame(gameType);
                 });
             });
 
@@ -440,39 +566,102 @@
                 depositModal.classList.add('hidden');
             });
 
-            // Game Navigation
-            playBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    if (!isConnected) {
-                        alert('Please connect your wallet first!');
-                        return;
-                    }
-                    // Hide modal if open
-                    depositModal.classList.add('hidden');
-                    // Show game interface
-                    gameInterface.classList.remove('hidden');
-                    document.querySelector('.games-grid').classList.add('hidden');
-                    document.querySelector('.hero').classList.add('hidden');
-                });
-            });
-
             backToMenu.addEventListener('click', () => {
                 gameInterface.classList.add('hidden');
                 document.querySelector('.games-grid').classList.remove('hidden');
                 document.querySelector('.hero').classList.remove('hidden');
+                hideAllGameControls();
             });
 
-            // Dice Game Logic
+            function hideAllGameControls() {
+                document.getElementById('dice-controls').classList.add('hidden');
+                document.getElementById('poker-controls').classList.add('hidden');
+                document.getElementById('blackjack-controls').classList.add('hidden');
+                
+                drawPokerBtn.classList.add('hidden');
+                bjActionsDiv.classList.add('hidden');
+                
+                dealPokerBtn.classList.remove('hidden');
+                dealBjBtn.classList.remove('hidden');
+            }
+
+            function switchGame(game) {
+                currentGame = game;
+                nonceDisplay.textContent = parseInt(nonceDisplay.textContent) + 1;
+                generateServerSeed();
+                
+                if (game === 'dice') {
+                    gameTitle.textContent = 'Dice';
+                    document.getElementById('dice-controls').classList.remove('hidden');
+                } else if (game === 'poker') {
+                    gameTitle.textContent = 'Texas Hold\'em / 5-Card Draw';
+                    document.getElementById('poker-controls').classList.remove('hidden');
+                    resetPokerUI();
+                } else if (game === 'blackjack') {
+                    gameTitle.textContent = 'Blackjack';
+                    document.getElementById('blackjack-controls').classList.remove('hidden');
+                    resetBlackjackUI();
+                }
+            }
+
+            function resetAllGames() {
+                hideAllGameControls();
+                diceResult.textContent = '--';
+                diceResult.style.color = '#fff';
+                resetPokerUI();
+                resetBlackjackUI();
+            }
+
+            function generateServerSeed() {
+                const array = new Uint8Array(32);
+                window.crypto.getRandomValues(array);
+                const hex = Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
+                document.getElementById('server-seed').textContent = hex;
+            }
+
+            // --- Utility: Card Deck ---
+            const suits = ['♠', '♥', '♦', '♣'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+            function createDeck() {
+                let deck = [];
+                for (let suit of suits) {
+                    for (let value of values) {
+                        deck.push({ suit, value });
+                    }
+                }
+                return shuffleArray(deck);
+            }
+
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function renderCard(card, container) {
+                const div = document.createElement('div');
+                div.className = `card ${['♥', '♦'].includes(card.suit) ? 'red' : 'black'}`;
+                div.innerHTML = `<span>${card.value}</span><span>${card.suit}</span>`;
+                container.appendChild(div);
+            }
+
+            function renderHiddenCard(container) {
+                const div = document.createElement('div');
+                div.className = 'card black';
+                div.innerHTML = '<span>?</span>';
+                container.appendChild(div);
+            }
+
+            // --- Dice Game ---
             rollSlider.addEventListener('input', (e) => {
                 rollTargetDisplay.textContent = e.target.value;
             });
 
-            rollBtn.addEventListener('click', () => {
-                if (!isConnected) {
-                    alert('Connect wallet to play!');
-                    return;
-                }
-
+            rollBtn.addEventListener('click', async () => {
+                if (!isConnected) return;
                 const bet = parseFloat(betAmountInput.value);
                 const target = parseInt(rollSlider.value);
                 
@@ -485,29 +674,233 @@
                 diceResult.textContent = 'Rolling...';
                 diceResult.style.color = '#fff';
 
-                // Simulate server seed generation (for demo, we use client-side randomness)
-                // In production, send server seed hash, then reveal after roll
-                const nonce = parseInt(nonceDisplay.textContent) + 1;
-                nonceDisplay.textContent = nonce;
-
-                // Simulate network delay
                 setTimeout(() => {
                     const result = Math.random() * 100;
                     diceResult.textContent = result.toFixed(2);
                     
                     if (result < target) {
                         diceResult.style.color = '#00ff00';
-                        // Win logic: update balance locally for demo
-                        // In real app, wait for blockchain confirmation
-                        alert(`You won! Rolled ${result.toFixed(2)} under ${target}.`);
+                        const payout = bet * ((100 / target)); 
+                        alert(`You won! Rolled ${result.toFixed(2)}. Payout: ${payout.toFixed(4)} XMR`);
                     } else {
                         diceResult.style.color = '#ff0000';
                         alert(`You lost. Rolled ${result.toFixed(2)}. Target was under ${target}.`);
                     }
-                    
                     rollBtn.disabled = false;
                 }, 1000);
             });
+
+            // --- Poker Logic ---
+            let pokerDeck = [];
+            let playerHand = [];
+            let dealerHand = [];
+
+            function resetPokerUI() {
+                dealerCardsEl.innerHTML = '';
+                playerCardsEl.innerHTML = '';
+                dealPokerBtn.classList.remove('hidden');
+                drawPokerBtn.classList.add('hidden');
+            }
+
+            dealPokerBtn.addEventListener('click', () => {
+                if (!isConnected) return;
+                const bet = parseFloat(betAmountInput.value);
+                if (bet <= 0) return;
+
+                dealPokerBtn.classList.add('hidden');
+                drawPokerBtn.classList.remove('hidden');
+                
+                pokerDeck = createDeck();
+                
+                playerHand = pokerDeck.splice(0, 5);
+                dealerHand = pokerDeck.splice(0, 5);
+
+                playerCardsEl.innerHTML = '';
+                dealerCardsEl.innerHTML = '';
+
+                playerHand.forEach(card => renderCard(card, playerCardsEl));
+                dealerHand.forEach(card => renderCard(card, dealerCardsEl));
+            });
+
+            drawPokerBtn.addEventListener('click', () => {
+                while (playerHand.length < 5 && pokerDeck.length > 0) {
+                    playerHand.push(pokerDeck.pop());
+                }
+                playerCardsEl.innerHTML = '';
+                playerHand.forEach(card => renderCard(card, playerCardsEl));
+                
+                const playerScore = evaluatePokerHand(playerHand);
+                const dealerScore = evaluatePokerHand(dealerHand);
+                
+                if (playerScore > dealerScore) {
+                    alert('You Win!');
+                } else if (playerScore < dealerScore) {
+                    alert('You Lose!');
+                } else {
+                    alert('Push!');
+                }
+
+                drawPokerBtn.classList.add('hidden');
+                dealPokerBtn.classList.remove('hidden');
+            });
+
+            function evaluatePokerHand(hand) {
+                let score = 0;
+                const valuesSorted = hand.map(c => values.indexOf(c.value)).sort((a,b) => a-b);
+                const suitsCount = {};
+                hand.forEach(c => suitsCount[c.suit] = (suitsCount[c.suit] || 0) + 1);
+                
+                const isFlush = Object.values(suitsCount).some(count => count === 5);
+                const isStraight = (valuesSorted[4] - valuesSorted[0] === 4 && new Set(valuesSorted).size === 5) || 
+                                   (valuesSorted.join(',') === '0,1,2,3,12');
+                
+                const counts = Object.values(suitsCount).sort((a,b) => b-a);
+                
+                if (isFlush && isStraight) score = 800;
+                else if (counts[0] === 4) score = 700;
+                else if (counts[0] === 3 && counts[1] === 2) score = 600;
+                else if (isFlush) score = 500;
+                else if (isStraight) score = 400;
+                else if (counts[0] === 3) score = 300;
+                else if (counts[0] === 2 && counts[1] === 2) score = 200;
+                else if (counts[0] === 2) score = 100;
+                else score = 0;
+
+                score += valuesSorted[4];
+                return score;
+            }
+
+            // --- Blackjack Logic ---
+            let bjDeck = [];
+            let playerBJHand = [];
+            let dealerBJHand = [];
+            let bjGameActive = false;
+
+            function resetBlackjackUI() {
+                bjDealerCardsEl.innerHTML = '';
+                bjPlayerCardsEl.innerHTML = '';
+                bjDealerScoreEl.textContent = '0';
+                bjPlayerScoreEl.textContent = '0';
+                dealBjBtn.classList.remove('hidden');
+                bjActionsDiv.classList.add('hidden');
+                hitBtn.disabled = false;
+                standBtn.disabled = false;
+            }
+
+            dealBjBtn.addEventListener('click', () => {
+                if (!isConnected) return;
+                const bet = parseFloat(betAmountInput.value);
+                if (bet <= 0) return;
+
+                dealBjBtn.classList.add('hidden');
+                bjActionsDiv.classList.remove('hidden');
+                bjGameActive = true;
+
+                bjDeck = createDeck();
+                playerBJHand = [bjDeck.pop(), bjDeck.pop()];
+                dealerBJHand = [bjDeck.pop(), bjDeck.pop()];
+
+                renderBJHands(false); 
+                checkForBlackjack();
+            });
+
+            hitBtn.addEventListener('click', () => {
+                if (!bjGameActive) return;
+                playerBJHand.push(bjDeck.pop());
+                renderBJHands(false);
+                if (calculateBJScore(playerBJHand) > 21) {
+                    endBJGame('Bust! You lose.');
+                }
+            });
+
+            standBtn.addEventListener('click', () => {
+                if (!bjGameActive) return;
+                dealerTurn();
+            });
+
+            function calculateBJScore(hand) {
+                let score = 0;
+                let aces = 0;
+                hand.forEach(card => {
+                    if (card.value === 'A') {
+                        aces++;
+                        score += 11;
+                    } else if (['K', 'Q', 'J'].includes(card.value)) {
+                        score += 10;
+                    } else {
+                        score += parseInt(card.value);
+                    }
+                });
+                while (score > 21 && aces > 0) {
+                    score -= 10;
+                    aces--;
+                }
+                return score;
+            }
+
+            function renderBJHands(showDealerFull) {
+                bjPlayerCardsEl.innerHTML = '';
+                bjDealerCardsEl.innerHTML = '';
+
+                playerBJHand.forEach(card => renderCard(card, bjPlayerCardsEl));
+                bjPlayerScoreEl.textContent = calculateBJScore(playerBJHand);
+
+                if (showDealerFull) {
+                    dealerBJHand.forEach(card => renderCard(card, bjDealerCardsEl));
+                    bjDealerScoreEl.textContent = calculateBJScore(dealerBJHand);
+                } else {
+                    renderCard(dealerBJHand[0], bjDealerCardsEl);
+                    renderHiddenCard(bjDealerCardsEl);
+                    bjDealerScoreEl.textContent = '?';
+                }
+            }
+
+            function checkForBlackjack() {
+                const pScore = calculateBJScore(playerBJHand);
+                if (pScore === 21) {
+                    renderBJHands(true);
+                    const dScore = calculateBJScore(dealerBJHand);
+                    if (dScore === 21) {
+                        endBJGame('Push! Both have Blackjack.');
+                    } else {
+                        endBJGame('Blackjack! You win!');
+                    }
+                }
+            }
+
+            function dealerTurn() {
+                renderBJHands(true);
+                const dealerPlay = setInterval(() => {
+                    if (calculateBJScore(dealerBJHand) < 17) {
+                        dealerBJHand.push(bjDeck.pop());
+                        renderBJHands(true);
+                    } else {
+                        clearInterval(dealerPlay);
+                        determineWinner();
+                    }
+                }, 1000);
+            }
+
+            function determineWinner() {
+                const pScore = calculateBJScore(playerBJHand);
+                const dScore = calculateBJScore(dealerBJHand);
+
+                if (dScore > 21) {
+                    endBJGame('Dealer Busts! You Win!');
+                } else if (pScore > dScore) {
+                    endBJGame('You Win!');
+                } else if (pScore < dScore) {
+                    endBJGame('You Lose.');
+                } else {
+                    endBJGame('Push.');
+                }
+            }
+
+            function endBJGame(message) {
+                bjGameActive = false;
+                alert(message);
+                resetBlackjackUI();
+            }
         });
     </script>
 </body>
