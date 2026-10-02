@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BlackGap | Monero Casino</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #141414;
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --accent: #ff6b00; /* Monero Orange */
+            --accent-hover: #ff8533;
+            --border: #333;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wallet-connect {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Buttons */
+        .btn-primary, .btn-secondary, .btn-large, .play-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover { background-color: var(--accent-hover); }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+
+        .btn-large {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.3rem;
+            background-color: var(--accent);
+            color: #000;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .btn-small {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .hero h1 { font-size: 2.5rem; margin-bottom: 10px; line-height: 1.2; }
+        .hero p { color: var(--text-muted); font-size: 1.1rem; }
+
+        /* Games Grid */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .game-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .game-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+
+        .game-icon { font-size: 2.5rem; color: var(--accent); margin-bottom: 15px; }
+
+        .play-btn {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .play-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Game Panel */
+        .game-panel {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .game-controls {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem; }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+
+        .slider-control { margin-bottom: 25px; }
+        .slider-control label { display: block; margin-bottom: 8px; color: var(--text-muted); }
+        .slider-control input[type="range"] { width: 100%; height: 8px; background: var(--border); border-radius: 5px; outline: none; }
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .result-display {
+            text-align: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .provably-fair {
+            margin-top: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            word-break: break-all;
+            font-size: 0.8rem;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .qr-code img { margin: 20px 0; max-width: 100%; height: auto; }
+        code {
+            display: block;
+            background-color: var(--bg-dark);
+            padding: 12px;
+            border-radius: 8px;
+            word-break: break-all;
+            margin: 15px 0;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            margin-top: auto;
+        }
+
+        .socials a { color: var(--text-muted); margin: 0 10px; font-size: 1.2rem; }
+        .socials a:hover { color: var(--accent); }
+
+        /* iPad Specific Adjustments */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .game-panel { padding: 15px; }
+            .btn-large { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-diamond"></i> BlackGap
+            </div>
+            <div class="wallet-connect">
+                <button id="connect-btn" class="btn-primary">Connect Wallet</button>
+                <div id="wallet-info" class="hidden">
+                    <span id="user-address" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+                    <span id="user-balance" style="color: var(--accent); font-weight: bold;"></span>
+                    <button id="disconnect-btn" class="btn-small"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <section class="hero">
+                <h1>Play Fair. Stay Private.</h1>
+                <p>Decentralized. No KYC. Just Monero.</p>
+            </section>
+
+            <section class="games-grid">
+                <div class="game-card active">
+                    <div class="game-icon"><i class="fa-solid fa-dice"></i></div>
+                    <h3>Dice</h3>
+                    <p>Roll under 50 to win 2x.</p>
+                    <button class="play-btn">Play Now</button>
+                </div>
+                <div class="game-card">
+                    <div class="game-icon"><i class="fa-solid fa-coins"></i></div>
+                    <h3>Mines</h3>
+                    <p>Uncover gems, avoid mines.</p>
+                    <button class="play-btn">Play Now</button>
+                </div>
+                <div class="game-card">
+                    <div class="game-icon"><i class="fa-solid fa-car-burst"></i></div>
+                    <h3>Crash</h3>
+                    <p>Cash out before the rocket crashes.</p>
+                    <button class="play-btn">Play Now</button>
+                </div>
+            </section>
+
+            <!-- Game Interface (Hidden by default) -->
+            <section id="game-interface" class="game-panel hidden">
+                <div class="game-header">
+                    <h2>Dice</h2>
+                    <button id="back-to-menu" class="btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                </div>
+                <div class="game-controls">
+                    <div class="input-group">
+                        <label>Bet Amount (XMR)</label>
+                        <input type="number" id="bet-amount" value="0.01" step="0.001" min="0.001">
+                    </div>
+                    <div class="slider-control">
+                        <label>Roll Under: <span id="roll-target">50.00</span>%</label>
+                        <input type="range" id="roll-slider" min="2" max="98" value="50">
+                    </div>
+                    <div class="result-display">
+                        <span id="dice-result">--</span>
+                    </div>
+                    <button id="roll-btn" class="btn-large">ROLL</button>
+                </div>
+                <div class="provably-fair">
+                    <small>Seed: <span id="server-seed">...</span> | Nonce: <span id="nonce">1</span></small>
+                </div>
+            </section>
+
+            <!-- Deposit Modal -->
+            <div id="deposit-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h3>Deposit XMR</h3>
+                    <p>Send Monero to this address:</p>
+                    <div class="qr-code">
+                        <!-- QR Code placeholder -->
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=YOUR_XMR_ADDRESS_HERE" alt="QR Code">
+                    </div>
+                    <code id="deposit-address">4...example...address</code>
+                    <button id="close-modal" class="btn-secondary">Close</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2026 BlackGap.io. All rights reserved.</p>
+            <div class="socials">
+                <a href="#"><i class="fa-brands fa-twitter"></i></a>
+                <a href="#"><i class="fa-brands fa-discord"></i></a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const connectBtn = document.getElementById('connect-btn');
+            const walletInfo = document.getElementById('wallet-info');
+            const userAddressEl = document.getElementById('user-address');
+            const userBalanceEl = document.getElementById('user-balance');
+            const disconnectBtn = document.getElementById('disconnect-btn');
+            
+            const depositModal = document.getElementById('deposit-modal');
+            const depositAddressEl = document.getElementById('deposit-address');
+            const closeModal = document.getElementById('close-modal');
+            
+            const gameInterface = document.getElementById('game-interface');
+            const backToMenu = document.getElementById('back-to-menu');
+            const playBtns = document.querySelectorAll('.play-btn');
+            
+            const betAmountInput = document.getElementById('bet-amount');
+            const rollSlider = document.getElementById('roll-slider');
+            const rollTargetDisplay = document.getElementById('roll-target');
+            const diceResult = document.getElementById('dice-result');
+            const rollBtn = document.getElementById('roll-btn');
+            const nonceDisplay = document.getElementById('nonce');
+            
+            let currentAddress = '';
+            let isConnected = false;
+
+            // Connect Wallet (Simulated)
+            connectBtn.addEventListener('click', async () => {
+                connectBtn.textContent = 'Connecting...';
+                connectBtn.disabled = true;
+                
+                // Simulate network delay
+                setTimeout(() => {
+                    // Generate a fake Monero address starting with 4
+                    const randomHex = Math.random().toString(16).substr(2, 8);
+                    currentAddress = `4${randomHex}...` + Math.random().toString(36).substring(2, 6);
+                    
+                    userAddressEl.textContent = currentAddress;
+                    depositAddressEl.textContent = currentAddress;
+                    
+                    // Set fake balance
+                    userBalanceEl.textContent = `${(Math.random() * 10).toFixed(4)} XMR`;
+                    
+                    walletInfo.classList.remove('hidden');
+                    connectBtn.classList.add('hidden');
+                    isConnected = true;
+                }, 1000);
+            });
+
+            // Disconnect
+            disconnectBtn.addEventListener('click', () => {
+                currentAddress = '';
+                walletInfo.classList.add('hidden');
+                connectBtn.textContent = 'Connect Wallet';
+                connectBtn.disabled = false;
+                connectBtn.style.display = 'inline-block';
+                isConnected = false;
+            });
+
+            // Open Deposit Modal
+            playBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (!isConnected) {
+                        alert('Please connect your wallet first!');
+                        return;
+                    }
+                    depositModal.classList.remove('hidden');
+                });
+            });
+
+            closeModal.addEventListener('click', () => {
+                depositModal.classList.add('hidden');
+            });
+
+            // Game Navigation
+            playBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (!isConnected) {
+                        alert('Please connect your wallet first!');
+                        return;
+                    }
+                    // Hide modal if open
+                    depositModal.classList.add('hidden');
+                    // Show game interface
+                    gameInterface.classList.remove('hidden');
+                    document.querySelector('.games-grid').classList.add('hidden');
+                    document.querySelector('.hero').classList.add('hidden');
+                });
+            });
+
+            backToMenu.addEventListener('click', () => {
+                gameInterface.classList.add('hidden');
+                document.querySelector('.games-grid').classList.remove('hidden');
+                document.querySelector('.hero').classList.remove('hidden');
+            });
+
+            // Dice Game Logic
+            rollSlider.addEventListener('input', (e) => {
+                rollTargetDisplay.textContent = e.target.value;
+            });
+
+            rollBtn.addEventListener('click', () => {
+                if (!isConnected) {
+                    alert('Connect wallet to play!');
+                    return;
+                }
+
+                const bet = parseFloat(betAmountInput.value);
+                const target = parseInt(rollSlider.value);
+                
+                if (bet <= 0 || isNaN(bet)) {
+                    alert('Invalid bet amount');
+                    return;
+                }
+
+                rollBtn.disabled = true;
+                diceResult.textContent = 'Rolling...';
+                diceResult.style.color = '#fff';
+
+                // Simulate server seed generation (for demo, we use client-side randomness)
+                // In production, send server seed hash, then reveal after roll
+                const nonce = parseInt(nonceDisplay.textContent) + 1;
+                nonceDisplay.textContent = nonce;
+
+                // Simulate network delay
+                setTimeout(() => {
+                    const result = Math.random() * 100;
+                    diceResult.textContent = result.toFixed(2);
+                    
+                    if (result < target) {
+                        diceResult.style.color = '#00ff00';
+                        // Win logic: update balance locally for demo
+                        // In real app, wait for blockchain confirmation
+                        alert(`You won! Rolled ${result.toFixed(2)} under ${target}.`);
+                    } else {
+                        diceResult.style.color = '#ff0000';
+                        alert(`You lost. Rolled ${result.toFixed(2)}. Target was under ${target}.`);
+                    }
+                    
+                    rollBtn.disabled = false;
+                }, 1000);
+            });
+        });
+    </script>
+</body>
+</html>
